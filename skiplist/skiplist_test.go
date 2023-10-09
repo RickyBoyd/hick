@@ -5,31 +5,41 @@ import (
 )
 
 func TestHelloName(t *testing.T) {
-	bottom5 := skipListNode[int]{
+	block5 := skipListNode[int]{
 		value: 5,
-		next:  nil,
-		down:  nil,
-	}
-
-	s := SkipList[int]{
-		head: &skipListNode[int]{
-			value: 1,
-			next: &skipListNode[int]{
-				value: 5,
-				down:  &bottom5,
-				next:  nil,
-			},
-			down: &skipListNode[int]{
-				value: 1,
-				next: &skipListNode[int]{
-					value: 3,
-					next:  &bottom5,
-					down:  nil,
-				},
-				down: nil,
-			},
+		next: []*skipListNode[int]{
+			nil,
+			nil,
 		},
 	}
+
+	block3 := skipListNode[int]{
+		value: 3,
+		next: []*skipListNode[int]{
+			&block5,
+		},
+	}
+
+	block1 := skipListNode[int]{
+		value: 1,
+		next: []*skipListNode[int]{
+			&block3,
+			&block5,
+		},
+	}
+
+	/*
+		|*| -> |1| --------> |5| -> |nil|
+		|*| -> |1| -> |3| -> |5| -> |nil|
+	*/
+
+	s := SkipList[int]{
+		head: []*skipListNode[int]{
+			&block1,
+			&block1,
+		},
+	}
+
 	if !s.Find(5) {
 		t.Fatal("could not find 5")
 	}

@@ -3,6 +3,7 @@ package skiplist
 import (
 	"cmp"
 	"errors"
+	"math/rand"
 )
 
 type List[T cmp.Ordered] interface {
@@ -13,15 +14,27 @@ type List[T cmp.Ordered] interface {
 
 type skipListNode[T cmp.Ordered] struct {
 	value T
-	next  *skipListNode[T]
-	down  *skipListNode[T]
+	next  []*skipListNode[T]
+}
+
+func (self *skipListNode[T]) Height() int {
+	return len(self.next)
+}
+
+func setNext[T cmp.Ordered](setOn *skipListNode[T], setTo *skipListNode[T], height int) {
+	tmp := setOn.next[height]
+	setOn.next[height] = setTo
+	setTo.next[height] = tmp
 }
 
 type SkipList[T cmp.Ordered] struct {
-	head *skipListNode[T]
+	head       []*skipListNode[T]
+	headHeight int
 }
 
 func (self *SkipList[T]) Insert(t T) error {
+	//newHeight := generateHeight()
+
 	return errors.New("boo")
 }
 
@@ -31,24 +44,43 @@ func (self *SkipList[T]) Find(t T) bool {
 }
 
 func (self *SkipList[T]) findNode(t T) *skipListNode[T] {
-	currentNode := self.head
+	var currentNode *skipListNode[T]
+	currentHeight := len(self.head) - 1
+	for ; currentHeight > 0; currentHeight-- {
+		headNode := self.head[currentHeight]
+		if headNode.value == t {
+			return headNode
+		}
+		if headNode.value < t {
+			currentNode = headNode
+			break
+		}
+	}
+
+	if currentNode == nil {
+		return nil
+	}
+
 	for currentNode != nil {
-		if currentNode.value == t {
-			return currentNode
+		found := false
+		for i := currentHeight; i > 0; i-- {
+			nextNode := currentNode.next[i]
+			if nextNode == nil {
+				continue
+			}
+			if nextNode.value == t {
+				return nextNode
+			}
+			if t < nextNode.value {
+				currentNode = nextNode
+				found = true
+				currentHeight = i
+				break
+			}
 		}
-
-		if currentNode.next == nil {
-			// then we're at the end, try to go down
-			currentNode = currentNode.down
-			continue
+		if !found {
+			return nil
 		}
-		if !cmp.Less(currentNode.next.value, t) {
-			// then go there
-			currentNode = currentNode.next
-			continue
-		}
-
-		currentNode = currentNode.down
 	}
 
 	return currentNode
@@ -56,4 +88,12 @@ func (self *SkipList[T]) findNode(t T) *skipListNode[T] {
 
 func (self *SkipList[T]) Delete(t T) error {
 	return errors.New("boo")
+}
+
+func generateHeight() int {
+	height := 1
+	for rand.Float32() < 0.5 {
+		height += 1
+	}
+	return height
 }
