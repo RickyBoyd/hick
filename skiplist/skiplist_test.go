@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestHelloName(t *testing.T) {
+func TestFind(t *testing.T) {
 	block5 := skipListNode[int]{
 		value: 5,
 		next: []*skipListNode[int]{

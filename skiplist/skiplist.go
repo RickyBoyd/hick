@@ -33,7 +33,10 @@ type SkipList[T cmp.Ordered] struct {
 }
 
 func (self *SkipList[T]) Insert(t T) error {
-	//newHeight := generateHeight()
+	newHeight := generateHeight()
+	lastSeenByHeight := make([]*skipListNode[T], newHeight)
+	node, height := self.searchHead(t)
+	lastSeenByHeight[height] = node
 
 	return errors.New("boo")
 }
@@ -43,28 +46,28 @@ func (self *SkipList[T]) Find(t T) bool {
 	return node != nil
 }
 
-func (self *SkipList[T]) findNode(t T) *skipListNode[T] {
-	var currentNode *skipListNode[T]
-	currentHeight := len(self.head) - 1
-	for ; currentHeight > 0; currentHeight-- {
+func (self *SkipList[T]) searchHead(t T) (*skipListNode[T], int) {
+	for currentHeight := len(self.head) - 1; currentHeight >= 0; currentHeight-- {
 		headNode := self.head[currentHeight]
-		if headNode.value == t {
-			return headNode
-		}
-		if headNode.value < t {
-			currentNode = headNode
-			break
+		if headNode.value <= t {
+			return headNode, currentHeight
 		}
 	}
+	return nil, -1
+}
 
+func (self *SkipList[T]) findNode(t T) *skipListNode[T] {
+	currentNode, currentHeight := self.searchHead(t)
 	if currentNode == nil {
 		return nil
 	}
+	if currentNode.value == t {
+		return currentNode
+	}
 
 	for currentNode != nil {
-		found := false
-		for i := currentHeight; i > 0; i-- {
-			nextNode := currentNode.next[i]
+		for ; currentHeight >= 0; currentHeight-- {
+			nextNode := currentNode.next[currentHeight]
 			if nextNode == nil {
 				continue
 			}
@@ -73,12 +76,10 @@ func (self *SkipList[T]) findNode(t T) *skipListNode[T] {
 			}
 			if t < nextNode.value {
 				currentNode = nextNode
-				found = true
-				currentHeight = i
 				break
 			}
 		}
-		if !found {
+		if currentHeight < 0 {
 			return nil
 		}
 	}
